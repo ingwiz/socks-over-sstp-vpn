@@ -1,0 +1,24 @@
+persist
+maxfail 0
+holdoff 2
+lock
+
+# auth and crypt
+require-mschap-v2 noauth
+refuse-eap
+refuse-pap
+refuse-chap
+refuse-mschap
+
+# IP/DNS
+usepeerdns
+noipdefault
+defaultroute
+defaultroute-metric 10
+replacedefaultroute
+
+# compression and optimizing
+nobsdcomp
+nodeflate
+mtu 1400
+mru 1400

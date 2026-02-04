@@ -1,0 +1,65 @@
+networks:
+  sstp-socks-dns:
+    driver: bridge
+
+services:
+  sstp-client:
+    build:
+      context: ./sstp
+    image: ingwiz/sstp-client
+    container_name: sstp-client
+    env_file: .env
+    privileged: true
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+    devices:
+      - /dev/ppp
+    networks:
+      - sstp-socks-dns
+    cpus: 1.0
+    ports:
+      - "127.0.0.1:2053:2053/udp"  # coredns
+      - "127.0.0.1:2080:1080/tcp"  # dante
+      - "127.0.0.1:2080:1080/udp"  # dante
+    volumes:
+      - ./dns-upstream:/dns-upstream:rw  # shared volume
+      - ${CA_CERT}:/ca_cert.crt
+    healthcheck:
+      test: ["CMD", "ip", "route", "show", "dev", "ppp0"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  socks5:
+    build:
+      context: ./dante
+    image: ingwiz/dante
+    container_name: dante
+    restart: on-failure:5
+    depends_on:
+      sstp-client:
+        condition: service_healthy
+    network_mode: service:sstp-client
+    cpus: 1.0
+    cap_add:
+      # UDP over SOCKS may not work or break without this option
+      - NET_ADMIN
+    volumes:
+      - ./dante/danted.conf:/etc/danted.conf:ro
+    # command: ["danted", "-f", "/etc/danted.conf", "-D"]
+    security_opt:
+      - no-new-privileges:true
+
+  coredns:
+    image: coredns/coredns:1.11.1
+    profiles:
+      - dns
+    container_name: coredns
+    restart: on-failure:5
+    depends_on:
+      sstp-client:
+        condition: service_healthy
+    network_mode: service:sstp-client
+    volumes:
+      - ./dns-upstream:/dns-upstream:ro  # shared volume
+    command: -conf /dns-upstream/Corefile -dns.port 2053

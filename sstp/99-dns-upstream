@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -x
+
+rm -f ./dns-upstream/Corefile
+
+[ -z "$DNS1" ] && exit 0
+
+export UPSTREAM_DOMAINS="$(cat /tmp/upstream_domains)"
+export DNS1 DNS2
+
+if [ -z "$UPSTREAM_DOMAINS" ]; then
+    echo "[Info] UPSTREAM_DOMAINS is not set, so DNS upstream won't be set"
+    exit 0
+fi
+
+envsubst '$UPSTREAM_DOMAINS $DNS1 $DNS2' \
+    < ./dns-upstream/Corefile.tpl \
+    > ./dns-upstream/Corefile
