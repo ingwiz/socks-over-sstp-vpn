@@ -2,18 +2,14 @@
 
 set -x
 
-rm -f ./dns-upstream/Corefile
+cat<<EOF > /dns-upstream/nameservers
+$DNS1
+$DNS2
+EOF
 
 [ -z "$DNS1" ] && exit 0
 
-export UPSTREAM_DOMAINS="$(cat /tmp/upstream_domains)"
-export DNS1 DNS2
+RESOLV_BAK=/etc/resolv.conf~
+[ -f $RESOLV_BAK ] || cp /etc/resolv.conf $RESOLV_BAK
 
-if [ -z "$UPSTREAM_DOMAINS" ]; then
-    echo "[Info] UPSTREAM_DOMAINS is not set, so DNS upstream won't be set"
-    exit 0
-fi
-
-envsubst '$UPSTREAM_DOMAINS $DNS1 $DNS2' \
-    < ./dns-upstream/Corefile.tpl \
-    > ./dns-upstream/Corefile
+printf "nameserver %s\n" $DNS1 $DNS2 > /etc/resolv.conf

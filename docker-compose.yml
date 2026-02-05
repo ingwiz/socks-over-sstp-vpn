@@ -46,20 +46,7 @@ services:
       - NET_ADMIN
     volumes:
       - ./dante/danted.conf:/etc/danted.conf:ro
+      - ./dns-upstream:/dns-upstream:ro  # shared volume
     # command: ["danted", "-f", "/etc/danted.conf", "-D"]
     security_opt:
       - no-new-privileges:true
-
-  coredns:
-    image: coredns/coredns:1.11.1
-    profiles:
-      - dns
-    container_name: coredns
-    restart: on-failure:5
-    depends_on:
-      sstp-client:
-        condition: service_healthy
-    network_mode: service:sstp-client
-    volumes:
-      - ./dns-upstream:/dns-upstream:ro  # shared volume
-    command: -conf /dns-upstream/Corefile -dns.port 2053

@@ -10,8 +10,10 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+COPY . /opt/
+WORKDIR /opt/
+
 EXPOSE 1080/tcp
 EXPOSE 1080/udp
 
-# Run danted in foreground
-ENTRYPOINT ["/usr/sbin/danted", "-f", "/etc/danted.conf"]
+ENTRYPOINT ["/usr/bin/bash", "/opt/run-danted.sh"]
