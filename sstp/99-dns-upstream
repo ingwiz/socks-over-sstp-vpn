@@ -2,14 +2,10 @@
 
 set -x
 
-cat<<EOF > /dns-upstream/nameservers
-$DNS1
-$DNS2
-EOF
-
 [ -z "$DNS1" ] && exit 0
 
 RESOLV_BAK=/etc/resolv.conf~
 [ -f $RESOLV_BAK ] || cp /etc/resolv.conf $RESOLV_BAK
 
 printf "nameserver %s\n" $DNS1 $DNS2 > /etc/resolv.conf
+echo options ndots:0 >> /etc/resolv.conf
