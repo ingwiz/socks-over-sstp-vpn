@@ -35,22 +35,27 @@ cp .env.sample .env
 
 ### Dante (SOCKS5) configuration
 
-By default, `dante/danted.conf` **restricts outbound access** to private networks only:
+```bash
+cp ./dante/danted.conf.sample ./dante/danted.conf
+```
 
-- `10.0.0.0/8`
-- `172.28.0.0/16`
+⚠️ Important
+
+By default, outbound access is restricted to private networks only:
+
+    10.0.0.0/8
+
+    172.28.0.0/16
 
 All other destinations are explicitly blocked.
 
-This is done intentionally to limit access to internal VPN resources.
+This is an intentional security measure to limit access to internal VPN resources.
 
-You can change this behaviour if you need.
+If necessary, you can adjust this behavior in `danted.conf`.
 
 ---
 
-## Run
-
-### Start SSTP + SOCKS5
+## Run - Start SSTP + SOCKS5
 
 ```
 docker compose up -d
@@ -60,7 +65,7 @@ SOCKS5 will be available at: `127.0.0.1:2080`
 
 ## SSH over SOCKS5
 
-1. Using **ncat** (useful for `git` command)
+1. Using **ncat** (useful for `git` operations and tools like Ansible)
 
 `~/.ssh/config`:
 ```
@@ -90,9 +95,11 @@ socks5 127.0.0.1 2080
 
 ## DNS
 
-If your VPN provider don't give you private DNS servers, but you need them, you can specify `dns` option for the `sstp-client` service in the `docker-compose.yml`
+If your VPN provider does not provide private DNS servers but you need them, you can specify the `dns` option for the `sstp-client` service in `docker-compose.yml`.
 
-DNS of your VPN provider have highest priority.
+DNS servers provided by your VPN provider have the highest priority.
+
+Use the SOCKS5h protocol to route DNS requests through the SOCKS server.
 
 ---
 

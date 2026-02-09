@@ -2,11 +2,11 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+#iproute2 \
 # Install Dante
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     dante-server \
-    iproute2 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
