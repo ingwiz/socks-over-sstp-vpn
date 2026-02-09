@@ -5,7 +5,6 @@ Designed for **Docker Desktop on Windows**.
 
 This setup avoids the limitations of the native Windows SSTP client and provides:
 - SOCKS5 access to the VPN
-- Optional DNS forwarding via CoreDNS
 
 ---
 
@@ -13,7 +12,6 @@ This setup avoids the limitations of the native Windows SSTP client and provides
 
 - **SSTP client** (PPP-based)
 - **Dante SOCKS5 proxy**
-- **CoreDNS** (optional)
 
 ---
 
@@ -27,50 +25,37 @@ This setup avoids the limitations of the native Windows SSTP client and provides
 
 ## Setup
 
-1. Place your CA certificate: `./.ca_cert.crt`
-
 1. Copy environment template:
 
 ```bash
 cp .env.sample .env
 ```
 
-3. Edit `.env` and set your SSTP credentials.
+2. Edit `.env` and set your SSTP credentials. Don't forget check if path `CA_CERT` to your CA certificate is right
 
 ### Dante (SOCKS5) configuration
 
-By default, `dante/danted.conf` **restricts outbound access** to private networks only:
+```bash
+cp ./dante/danted.conf.sample ./dante/danted.conf
+```
 
-- `10.0.0.0/8`
-- `172.28.0.0/16`
+⚠️ Important
+
+By default, outbound access is restricted to private networks only:
+
+    10.0.0.0/8
+
+    172.28.0.0/16
 
 All other destinations are explicitly blocked.
 
-This is done intentionally to limit access to internal VPN resources.
+This is an intentional security measure to limit access to internal VPN resources.
+
+If necessary, you can adjust this behavior in `danted.conf`.
 
 ---
 
-#### Allow access to all destinations
-
-If you want to allow SOCKS5 access to **any IP address**, update `danted.conf` as follows:
-
-1. Replace all existing `socks pass` rules with:
-
-```conf
-socks pass {
-    from: 0.0.0.0/0 to: 0.0.0.0/0
-    command: bind connect udpassociate
-    log: error
-}
-```
-
-2. Remove the final socks block rule completely.
-
-After these changes, Dante will allow connections to any destination through the VPN.
-
-## Run
-
-### Start SSTP + SOCKS5
+## Run - Start SSTP + SOCKS5
 
 ```
 docker compose up -d
@@ -80,7 +65,7 @@ SOCKS5 will be available at: `127.0.0.1:2080`
 
 ## SSH over SOCKS5
 
-1. Using **ncat**
+1. Using **ncat** (useful for `git` operations and tools like Ansible)
 
 `~/.ssh/config`:
 ```
@@ -104,34 +89,17 @@ proxy_dns
 socks5 127.0.0.1 2080
 ```
 
+- Make aliases for the most used command, ex. `ssh` and `curl`
+
 ---
 
-## DNS (Optional)
+## DNS
 
-Enable CoreDNS if you need private or conditional DNS resolution over the VPN.
+If your VPN provider does not provide private DNS servers but you need them, you can specify the `dns` option for the `sstp-client` service in `docker-compose.yml`.
 
-### Start with DNS support
+DNS servers provided by your VPN provider have the highest priority.
 
-Set `UPSTREAM_DOMAINS` in `.env`, then run:
-
-```
-docker compose --profile dns up -d
-```
-
-CoreDNS listens on: 127.0.0.1:2053/udp
-
-### Stop DNS
-
-```
-docker compose --profile dns down
-```
-
-## Ports
-
-| Service | Address        |
-| ------- | -------------- |
-| SOCKS5  | 127.0.0.1:2080 |
-| DNS     | 127.0.0.1:2053 |
+Use the SOCKS5h protocol to route DNS requests through the SOCKS server.
 
 ---
 
@@ -139,9 +107,7 @@ docker compose --profile dns down
 
 - SSTP runs in privileged mode to allow PPP networking.
 
-- SOCKS5 and CoreDNS share the VPN network namespace.
-
-- Services start only after the VPN tunnel is established.
+- SOCKS5 service start only after the VPN tunnel is established.
 
 ## License
 
