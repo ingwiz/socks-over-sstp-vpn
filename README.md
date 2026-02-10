@@ -17,7 +17,6 @@ This setup avoids the limitations of the native Windows SSTP client and provides
 
 ## Requirements
 
-- Docker Desktop
 - SSTP VPN credentials
 - CA certificate for the SSTP server
 
