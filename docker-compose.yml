@@ -20,7 +20,6 @@ services:
       - sstp-socks-dns
     cpus: 1.0
     ports:
-      - "127.0.0.1:2053:2053/udp"  # coredns
       - "127.0.0.1:2080:1080/tcp"  # dante
       - "127.0.0.1:2080:1080/udp"  # dante
     volumes:
